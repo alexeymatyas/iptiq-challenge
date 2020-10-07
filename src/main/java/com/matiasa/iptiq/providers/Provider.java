@@ -2,13 +2,21 @@ package com.matiasa.iptiq.providers;
 
 import java.util.UUID;
 
-public class Provider {
+import com.matiasa.iptiq.loadbalancers.BalancedProvider;
+
+public class Provider implements BalancedProvider {
     private final String instanceId;
 
     public Provider() {
         instanceId = UUID.randomUUID().toString();
     }
 
+    @Override
+    public String getInstanceId() {
+        return instanceId;
+    }
+
+    @Override
     public String get() {
         return instanceId;
     }
