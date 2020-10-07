@@ -11,6 +11,7 @@ public class LoadBalancer {
     private final int maxSize;
     private final BalancingStrategy strategy;
     private final Map<String, BalancedProvider> providerRegistry;
+    private final Map<String, BalancedProvider> disabledProviderRegistry;
 
     public LoadBalancer() {
         this(10);
@@ -28,13 +29,28 @@ public class LoadBalancer {
         this.maxSize = maxSize;
         this.strategy = strategy;
         providerRegistry = new LinkedHashMap<>();
+        disabledProviderRegistry = new LinkedHashMap<>();
     }
 
     public void registerProvider(BalancedProvider provider) throws SizeExceededException {
         providerRegistry.put(provider.getInstanceId(), provider);
 
-        if(providerRegistry.size() > maxSize) {
+        if(providerRegistry.size() + disabledProviderRegistry.size() > maxSize) {
             throw new SizeExceededException();
+        }
+    }
+
+    public void disableProvider(String providerId) {
+        BalancedProvider disabledProvider = providerRegistry.remove(providerId);
+        if(disabledProvider != null) {
+            disabledProviderRegistry.put(disabledProvider.getInstanceId(), disabledProvider);
+        }
+    }
+
+    public void enableProvider(String providerId) {
+        BalancedProvider enabledProvider = disabledProviderRegistry.remove(providerId);
+        if(enabledProvider != null) {
+            providerRegistry.put(enabledProvider.getInstanceId(), enabledProvider);
         }
     }
 

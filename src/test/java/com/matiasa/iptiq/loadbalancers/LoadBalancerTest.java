@@ -1,5 +1,6 @@
 package com.matiasa.iptiq.loadbalancers;
 
+import com.matiasa.iptiq.balancingstrategies.RoundRobinBalancingStrategy;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -54,5 +55,45 @@ public class LoadBalancerTest {
 
         // then
         assertThat(result, is(notNullValue()));
+    }
+
+    @Test
+    public void shouldDisableProvider() throws SizeExceededException, NoAvailableProviderException {
+        // given
+        LoadBalancer underTest = new LoadBalancer(3, new RoundRobinBalancingStrategy());
+        BalancedProvider provider1 = new Provider();
+        BalancedProvider provider2 = new Provider();
+        BalancedProvider provider3 = new Provider();
+
+        // when - then
+        underTest.registerProvider(provider1);
+        underTest.registerProvider(provider2);
+        underTest.registerProvider(provider3);
+        underTest.disableProvider(provider2.getInstanceId());
+
+        assertThat(underTest.get(), is(equalTo(provider1.get())));
+        assertThat(underTest.get(), is(equalTo(provider3.get())));
+        assertThat(underTest.get(), is(equalTo(provider1.get())));
+    }
+
+    @Test
+    public void shouldEnableProvider() throws SizeExceededException, NoAvailableProviderException {
+        // given
+        LoadBalancer underTest = new LoadBalancer(3, new RoundRobinBalancingStrategy());
+        BalancedProvider provider1 = new Provider();
+        BalancedProvider provider2 = new Provider();
+        BalancedProvider provider3 = new Provider();
+
+        // when - then
+        underTest.registerProvider(provider1);
+        underTest.registerProvider(provider2);
+        underTest.registerProvider(provider3);
+        underTest.disableProvider(provider2.getInstanceId());
+        underTest.enableProvider(provider2.getInstanceId());
+
+        assertThat(underTest.get(), is(equalTo(provider1.get())));
+        assertThat(underTest.get(), is(equalTo(provider3.get())));
+        assertThat(underTest.get(), is(equalTo(provider2.get())));
+        assertThat(underTest.get(), is(equalTo(provider1.get())));
     }
 }
