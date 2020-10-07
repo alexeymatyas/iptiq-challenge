@@ -1,4 +1,4 @@
-package com.matiasa.iptiq.providers.loadbalancers;
+package com.matiasa.iptiq.loadbalancers;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
