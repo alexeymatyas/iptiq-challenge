@@ -4,32 +4,32 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class LoadBalancer {
-    private final int maxCapacity;
+    private final int maxSize;
     private final Map<String, BalancedProvider> providerRegistry;
 
     public LoadBalancer() {
         this(10);
     }
 
-    public LoadBalancer(Integer maxCapacity) {
-        if(maxCapacity < 1) {
+    public LoadBalancer(Integer maxSize) {
+        if(maxSize < 1) {
             throw new IllegalArgumentException();
         }
 
-        this.maxCapacity = maxCapacity;
+        this.maxSize = maxSize;
         providerRegistry = new HashMap<>();
     }
 
-    public void registerProvider(BalancedProvider provider) throws CapacityOverflowException {
+    public void registerProvider(BalancedProvider provider) throws SizeExceededException {
         providerRegistry.put(provider.getInstanceId(), provider);
 
-        if(providerRegistry.size() > maxCapacity) {
-            throw new CapacityOverflowException();
+        if(providerRegistry.size() > maxSize) {
+            throw new SizeExceededException();
         }
     }
 
-    public int getMaxCapacity() {
-        return maxCapacity;
+    public int getMaxSize() {
+        return maxSize;
     }
 
     public int size() {
