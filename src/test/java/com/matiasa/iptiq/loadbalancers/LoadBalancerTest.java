@@ -4,12 +4,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import com.matiasa.iptiq.loadbalancers.LoadBalancer;
-import com.matiasa.iptiq.loadbalancers.SizeExceededException;
+import com.matiasa.iptiq.balancingstrategies.NoAvailableProviderException;
 import com.matiasa.iptiq.providers.Provider;
 
 @RunWith(JUnit4.class)
@@ -43,5 +41,18 @@ public class LoadBalancerTest {
         for(int i = 0; i < underTest.getMaxSize()+1; i++) {
             underTest.registerProvider(new Provider());
         }
+    }
+
+    @Test
+    public void shouldCallProvider() throws NoAvailableProviderException, SizeExceededException {
+        // given
+        LoadBalancer underTest = new LoadBalancer();
+        underTest.registerProvider(new Provider());
+
+        // when
+        String result = underTest.get();
+
+        // then
+        assertThat(result, is(notNullValue()));
     }
 }
