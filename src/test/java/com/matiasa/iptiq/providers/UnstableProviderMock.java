@@ -1,13 +1,14 @@
 package com.matiasa.iptiq.providers;
 
-import java.util.UUID;
-
 import com.matiasa.iptiq.loadbalancers.BalancedProvider;
 
-public class Provider implements BalancedProvider {
-    private final String instanceId;
+import java.util.UUID;
 
-    public Provider() {
+public class UnstableProviderMock implements BalancedProvider {
+    private final String instanceId;
+    private boolean isDown = false;
+
+    public UnstableProviderMock() {
         instanceId = UUID.randomUUID().toString();
     }
 
@@ -18,11 +19,19 @@ public class Provider implements BalancedProvider {
 
     @Override
     public boolean check() {
-        return true;
+        if(isDown) {
+            throw new RuntimeException();
+        } else {
+            return true;
+        }
     }
 
     @Override
     public String get() {
         return instanceId;
+    }
+
+    public void setDown(boolean down) {
+        isDown = down;
     }
 }
