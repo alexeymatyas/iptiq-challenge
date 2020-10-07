@@ -1,6 +1,6 @@
 package com.matiasa.iptiq.loadbalancers;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import com.matiasa.iptiq.balancingstrategies.BalancingStrategy;
@@ -27,7 +27,7 @@ public class LoadBalancer {
 
         this.maxSize = maxSize;
         this.strategy = strategy;
-        providerRegistry = new HashMap<>();
+        providerRegistry = new LinkedHashMap<>();
     }
 
     public void registerProvider(BalancedProvider provider) throws SizeExceededException {

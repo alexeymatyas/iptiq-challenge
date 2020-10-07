@@ -4,7 +4,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -20,7 +20,7 @@ public class RandomBalancingStategy {
     public void shouldChooseSingleAvailableProvider() throws NoAvailableProviderException {
         // given
         BalancingStrategy underTest = new RandomBalancingStrategy();
-        Map<String, BalancedProvider> providerRegistry = new HashMap<>();
+        Map<String, BalancedProvider> providerRegistry = new LinkedHashMap<>();
         BalancedProvider provider = new Provider();
         providerRegistry.put(provider.getInstanceId(), provider);
 
@@ -35,7 +35,7 @@ public class RandomBalancingStategy {
     public void shouldThrowExceptionWhenNoProvidersAvailable() throws NoAvailableProviderException {
         // given
         BalancingStrategy underTest = new RandomBalancingStrategy();
-        Map<String, BalancedProvider> providerRegistry = new HashMap<>();
+        Map<String, BalancedProvider> providerRegistry = new LinkedHashMap<>();
 
         // when
         underTest.getNextProvider(providerRegistry);
