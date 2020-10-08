@@ -1,5 +1,6 @@
 package com.matiasa.iptiq.loadbalancers;
 
+import com.matiasa.iptiq.Config;
 import com.matiasa.iptiq.balancingstrategies.RoundRobinBalancingStrategy;
 import com.matiasa.iptiq.providers.UnstableProviderMock;
 import org.junit.After;
@@ -40,7 +41,7 @@ public class LoadBalancerTest {
         underTest.registerProvider(provider);
 
         // then
-        assertThat(underTest.size(), is(equalTo(1)));
+        assertThat(underTest.getSize(), is(equalTo(1)));
     }
 
     @Test(expected = SizeExceededException.class)
@@ -122,11 +123,35 @@ public class LoadBalancerTest {
 
         // when
         provider2.setDown(true);
-        Thread.sleep(1000);
+        Thread.sleep(Config.HEARTBEAT_INTERVAL*2);
 
         // then
         assertThat(underTest.get(), is(equalTo(provider1.get())));
         assertThat(underTest.get(), is(equalTo(provider3.get())));
+        assertThat(underTest.get(), is(equalTo(provider1.get())));
+    }
+
+    @Test
+    public void shouldReenableAliveProvider() throws SizeExceededException, NoAvailableProviderException, InterruptedException {
+        // given
+        underTest = new LoadBalancer(3, new RoundRobinBalancingStrategy());
+        BalancedProvider provider1 = new Provider();
+        UnstableProviderMock provider2 = new UnstableProviderMock();
+        BalancedProvider provider3 = new Provider();
+        underTest.registerProvider(provider1);
+        underTest.registerProvider(provider2);
+        underTest.registerProvider(provider3);
+
+        // when
+        provider2.setDown(true);
+        Thread.sleep(Config.HEARTBEAT_INTERVAL*2);
+        provider2.setDown(false);
+        Thread.sleep(Config.HEARTBEAT_INTERVAL*(Config.REENABLE_THRESHOLD+1));
+
+        // then
+        assertThat(underTest.get(), is(equalTo(provider1.get())));
+        assertThat(underTest.get(), is(equalTo(provider3.get())));
+        assertThat(underTest.get(), is(equalTo(provider2.get())));
         assertThat(underTest.get(), is(equalTo(provider1.get())));
     }
 }
