@@ -5,7 +5,7 @@ import com.matiasa.iptiq.loadbalancers.BalancedProvider;
 import java.util.Iterator;
 import java.util.Map;
 
-public class RoundRobinBalancingStrategy extends BalancingStrategy {
+public class RoundRobinBalancingStrategy implements BalancingStrategy {
     private String lastUsedProviderId;
 
     @Override
