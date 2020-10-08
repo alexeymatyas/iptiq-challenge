@@ -1,8 +1,8 @@
 package com.matiasa.iptiq.loadbalancers;
 
-import com.matiasa.iptiq.Config;
-import com.matiasa.iptiq.balancingstrategies.RoundRobinBalancingStrategy;
-import com.matiasa.iptiq.providers.UnstableProviderMock;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.RejectedExecutionException;
+
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,8 +11,10 @@ import org.junit.runners.JUnit4;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import com.matiasa.iptiq.balancingstrategies.NoAvailableProviderException;
+import com.matiasa.iptiq.Config;
+import com.matiasa.iptiq.balancingstrategies.RoundRobinBalancingStrategy;
 import com.matiasa.iptiq.providers.Provider;
+import com.matiasa.iptiq.providers.UnstableProviderMock;
 
 @RunWith(JUnit4.class)
 public class LoadBalancerTest {
@@ -56,7 +58,7 @@ public class LoadBalancerTest {
     }
 
     @Test
-    public void shouldCallProvider() throws NoAvailableProviderException, SizeExceededException {
+    public void shouldCallProvider() throws SizeExceededException, ExecutionException, InterruptedException {
         // given
         underTest = new LoadBalancer();
         underTest.registerProvider(new Provider());
@@ -69,7 +71,7 @@ public class LoadBalancerTest {
     }
 
     @Test
-    public void shouldDisableProvider() throws SizeExceededException, NoAvailableProviderException {
+    public void shouldDisableProvider() throws SizeExceededException, ExecutionException, InterruptedException {
         // given
         underTest = new LoadBalancer(3, new RoundRobinBalancingStrategy());
         BalancedProvider provider1 = new Provider();
@@ -89,7 +91,7 @@ public class LoadBalancerTest {
     }
 
     @Test
-    public void shouldEnableProvider() throws SizeExceededException, NoAvailableProviderException {
+    public void shouldEnableProvider() throws SizeExceededException, ExecutionException, InterruptedException {
         // given
         underTest = new LoadBalancer(3, new RoundRobinBalancingStrategy());
         BalancedProvider provider1 = new Provider();
@@ -111,7 +113,7 @@ public class LoadBalancerTest {
     }
 
     @Test
-    public void shouldDisableDeadProvider() throws SizeExceededException, NoAvailableProviderException, InterruptedException {
+    public void shouldDisableDeadProvider() throws SizeExceededException, InterruptedException, ExecutionException {
         // given
         underTest = new LoadBalancer(3, new RoundRobinBalancingStrategy());
         BalancedProvider provider1 = new Provider();
@@ -132,7 +134,7 @@ public class LoadBalancerTest {
     }
 
     @Test
-    public void shouldReenableAliveProvider() throws SizeExceededException, NoAvailableProviderException, InterruptedException {
+    public void shouldReenableAliveProvider() throws SizeExceededException, InterruptedException, ExecutionException {
         // given
         underTest = new LoadBalancer(3, new RoundRobinBalancingStrategy());
         BalancedProvider provider1 = new Provider();
@@ -153,5 +155,29 @@ public class LoadBalancerTest {
         assertThat(underTest.get(), is(equalTo(provider3.get())));
         assertThat(underTest.get(), is(equalTo(provider2.get())));
         assertThat(underTest.get(), is(equalTo(provider1.get())));
+    }
+
+    @Test(expected = RejectedExecutionException.class)
+    public void shouldRejectWhenOverloaded() throws SizeExceededException, InterruptedException, ExecutionException {
+        // given
+        int providersNumber = 2;
+        underTest = new LoadBalancer();
+        for(int i = 0; i < providersNumber; i++) {
+            underTest.registerProvider(new UnstableProviderMock(1000));
+        }
+
+        // when
+        for(int i = 0; i < Config.MAX_REQUESTS_PER_PROVIDER * providersNumber; i++) {
+            Thread thread = new Thread(() -> {
+                try {
+                    underTest.get();
+                } catch (ExecutionException | InterruptedException e) {
+                    e.printStackTrace();
+                }
+            });
+            thread.start();
+        }
+        Thread.sleep(100);
+        underTest.get();
     }
 }

@@ -17,8 +17,7 @@ public class Provider implements BalancedProvider {
     }
 
     @Override
-    public boolean check() {
-        return true;
+    public void check() {
     }
 
     @Override

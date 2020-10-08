@@ -2,6 +2,6 @@ package com.matiasa.iptiq.loadbalancers;
 
 public interface BalancedProvider {
     String getInstanceId();
-    boolean check();
+    void check();
     String get();
 }

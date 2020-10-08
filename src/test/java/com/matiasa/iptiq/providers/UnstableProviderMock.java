@@ -7,9 +7,15 @@ import java.util.UUID;
 public class UnstableProviderMock implements BalancedProvider {
     private final String instanceId;
     private boolean isDown = false;
+    private final int delay;
 
     public UnstableProviderMock() {
-        instanceId = UUID.randomUUID().toString();
+        this(0);
+    }
+
+    public UnstableProviderMock(int delay) {
+        this.instanceId = UUID.randomUUID().toString();
+        this.delay = delay;
     }
 
     @Override
@@ -18,16 +24,19 @@ public class UnstableProviderMock implements BalancedProvider {
     }
 
     @Override
-    public boolean check() {
+    public void check() {
         if(isDown) {
             throw new RuntimeException();
-        } else {
-            return true;
         }
     }
 
     @Override
     public String get() {
+        try {
+            Thread.sleep(delay);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         return instanceId;
     }
 

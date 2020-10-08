@@ -1,13 +1,10 @@
 package com.matiasa.iptiq.loadbalancers;
 
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 import com.matiasa.iptiq.Config;
 import com.matiasa.iptiq.balancingstrategies.BalancingStrategy;
-import com.matiasa.iptiq.balancingstrategies.NoAvailableProviderException;
 import com.matiasa.iptiq.balancingstrategies.RandomBalancingStrategy;
 
 public class LoadBalancer {
@@ -16,6 +13,8 @@ public class LoadBalancer {
     private final Map<String, BalancedProvider> providerRegistry;
     private final Map<String, BalancedProvider> disabledProviderRegistry;
     private final Map<String, Integer> disabledProviderAliveCounters;
+
+    private final ThreadPoolExecutor requestHandler = new ThreadPoolExecutor(Config.CORE_POOL_SIZE, Config.CORE_POOL_SIZE*2, 1L, TimeUnit.SECONDS, new SynchronousQueue<>());
 
     private final ScheduledExecutorService heartbeatChecker = Executors.newSingleThreadScheduledExecutor();
 
@@ -46,9 +45,14 @@ public class LoadBalancer {
                 () -> {
                     disableDeadProviders();
                     enableAliveProviders();
+                    requestHandler.setMaximumPoolSize(calcMaxPoolSize());
                 },
                 0, Config.HEARTBEAT_INTERVAL, TimeUnit.MILLISECONDS
         );
+    }
+
+    private int calcMaxPoolSize() {
+        return Math.max(Config.CORE_POOL_SIZE, Config.MAX_REQUESTS_PER_PROVIDER * providerRegistry.size());
     }
 
     private void disableDeadProviders() {
@@ -115,8 +119,9 @@ public class LoadBalancer {
         }
     }
 
-    public String get() throws NoAvailableProviderException {
-        return strategy.getNextProvider(providerRegistry).get();
+    public String get() throws ExecutionException, InterruptedException {
+        Future<String> future = requestHandler.submit(() -> strategy.getNextProvider(providerRegistry).get());
+        return future.get();
     }
 
     public int getSize() {
