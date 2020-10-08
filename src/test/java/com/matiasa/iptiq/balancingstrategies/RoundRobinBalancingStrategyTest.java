@@ -13,7 +13,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 @RunWith(JUnit4.class)
-public class RoundRobinBalancingStategy {
+public class RoundRobinBalancingStrategyTest {
 
     @Test
     public void shouldChooseSingleAvailableProvider() throws NoAvailableProviderException {

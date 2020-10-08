@@ -14,7 +14,7 @@ import com.matiasa.iptiq.loadbalancers.BalancedProvider;
 import com.matiasa.iptiq.providers.Provider;
 
 @RunWith(JUnit4.class)
-public class RandomBalancingStategy {
+public class RandomBalancingStrategyTest {
 
     @Test
     public void shouldChooseSingleAvailableProvider() throws NoAvailableProviderException {
